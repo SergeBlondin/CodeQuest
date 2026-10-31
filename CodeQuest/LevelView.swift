@@ -20,7 +20,8 @@ struct LevelView: View {
     let level: Level
     @Binding var path: [Route]
     @State var started = false
-    @State var sel: [Int] = []
+    @State var picks: [Int: Int] = [:]
+    var sel: [Int] { level.blanks.indices.map { picks[$0] ?? -1 } }
     @State var frames: [Frame] = []
     @State var frameIndex = 0
     @State var running = false
@@ -56,10 +57,10 @@ struct LevelView: View {
             }
         }
         .onAppear {
-            sel = Array(repeating: -1, count: level.blanks.count)
+            picks = [:]
             let args = ProcessInfo.processInfo.arguments
             if args.contains("-cqStart") { started = true }
-            if args.contains("-cqSolve") { sel = level.blanks.map { $0.answer }; started = true }
+            if args.contains("-cqSolve") { for (i, b) in level.blanks.enumerated() { picks[i] = b.answer }; started = true }
             if args.contains("-cqAutoRun") { DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { run() } }
         }
         .onDisappear { runTask?.cancel() }
@@ -143,10 +144,10 @@ struct LevelView: View {
 
     func blankChip(_ b: Int) -> some View {
         let opts = level.blanks[b].options
-        let chosen = b < sel.count && sel[b] >= 0 ? opts[sel[b]] : nil
+        let chosen = picks[b].flatMap { $0 >= 0 && $0 < opts.count ? opts[$0] : nil }
         return Menu {
             ForEach(opts.indices, id: \.self) { o in
-                Button(opts[o]) { sel[b] = o; outcome = nil; frames = []; frameIndex = 0 }
+                Button(opts[o]) { picks[b] = o; outcome = nil; frames = []; frameIndex = 0 }
             }
         } label: {
             Text(chosen ?? " ? ")

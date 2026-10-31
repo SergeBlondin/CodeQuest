@@ -20,7 +20,7 @@ struct RootView: View {
                 .navigationDestination(for: Route.self) { r in
                     switch r {
                     case .world(let id): WorldView(world: allWorlds.first { $0.id == id }!, path: $path)
-                    case .level(let id): LevelView(level: allLevels.first { $0.id == id }!, path: $path)
+                    case .level(let id): LevelView(level: allLevels.first { $0.id == id }!, path: $path).id(id)
                     case .certificate: CertificateView()
                     }
                 }
